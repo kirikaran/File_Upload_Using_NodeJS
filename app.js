@@ -14,8 +14,23 @@ const storage =multer.diskStorage({
 
 //Init Upload
 const upload=multer({
-    storage:storage
+    storage:storage,
+    limits:{fileSize:1000000},
+    fileFilter:function(req,cb){
+        checkFileType(file,cb);
+    }
 }).single('myImage')
+
+//check file type 
+function checkFileType(file,cb){
+    //Allowed ext
+    const filetypes=/jpeg|jpg |png|gif/;
+   // check ext
+   const extname=filetypes.test( path.extname(file.originalname).toLocaleLowerCase());
+   //check mine
+   const mimetype=filetypes.test(file.mimetype);
+}
+
 
 //Init app
 const app=express();
@@ -28,8 +43,17 @@ app.use(express.static('./public'));
 
 app.get('/',(req,res)=> res.render('index'));
 
-app.post('/upload',(rq,res)=>{
-    res.send('test');
+app.post('/upload',(req,res)=>{
+    upload(req,res,(err)=>{
+        if(err){
+            es.render('index',{
+                msg:err
+            });
+        }else{
+            console.log(req.file);
+            res.send('test');
+        }
+    })
 })
 
 const port=3000;
