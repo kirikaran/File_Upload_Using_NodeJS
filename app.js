@@ -16,7 +16,7 @@ const storage =multer.diskStorage({
 const upload=multer({
     storage:storage,
     limits:{fileSize:1000000},
-    fileFilter:function(req,cb){
+    fileFilter:function(req,file,cb){
         checkFileType(file,cb);
     }
 }).single('myImage')
@@ -29,6 +29,12 @@ function checkFileType(file,cb){
    const extname=filetypes.test( path.extname(file.originalname).toLocaleLowerCase());
    //check mine
    const mimetype=filetypes.test(file.mimetype);
+
+   if(mimetype && extname){
+       return cb(null,true);
+   } else {
+       cb('Error: Images only! ')
+   }
 }
 
 
@@ -46,12 +52,20 @@ app.get('/',(req,res)=> res.render('index'));
 app.post('/upload',(req,res)=>{
     upload(req,res,(err)=>{
         if(err){
-            es.render('index',{
+            res.render('index',{
                 msg:err
             });
         }else{
-            console.log(req.file);
-            res.send('test');
+            if(req.file == undefined){
+                res.render('index',{
+                    msg:'Error: No File Selected!'
+                })
+            }else{
+                res.render('index',{
+                    msg:'File Uploaded!',
+                    file:`upload/${req.file.filename}`
+                });
+            }
         }
     })
 })
